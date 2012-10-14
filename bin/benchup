@@ -1,0 +1,11 @@
+#!perl
+
+use strict;
+use warnings;
+use Benchmark::Class::Builder;
+
+my $builder = Benchmark::Class::Builder->new;
+$builder->parse_options(@ARGV);
+$builder->run;
+
+__END__
