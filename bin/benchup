@@ -81,7 +81,7 @@ benchup - Run Benchmark Plan with Benchmark::Class
           # your code here..
       }
 
-      sub is_finish {
+      sub is_finished {
           my $self = shift;
           return !!$self->count > $self->get_count;
       }
