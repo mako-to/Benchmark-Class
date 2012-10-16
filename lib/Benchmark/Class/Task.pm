@@ -8,6 +8,7 @@ use Class::Accessor::Lite::Lazy (
     lazy_ro => [qw/worker_manager/],
 );
 use Parallel::Prefork;
+use Role::Tiny;
 
 sub _build_worker_manager {
     my $self = shift;
@@ -21,15 +22,24 @@ sub _build_worker_manager {
     });
 }
 
-sub load {
-    my ($self, $c) = @_;
+sub perform_count : lvalue {
+    my $self = shift;
+    $self->{_perform_count} = 0 unless exists $self->{_perform_count};
+    return $self->{_perform_count};
+}
 
-    while ( $self->worker_manager->signal_received ne 'TERM' ) {
-        $self->worker_manager->start(sub { $self->perform($c) });
+sub is_finished { return 1 }
+
+before perform => sub { shift->perform_count++ };
+
+sub load {
+    my $self = shift;
+
+    while ( $self->is_finished && $self->worker_manager->signal_received ne 'TERM' ) {
+        $self->worker_manager->start(sub { $self->perform(@_) });
         # XXX MaxRequestsPerChild 的なことしといたほうがいいかな
     }
-
     $self->worker_manager->wait_all_children;
-}
+};
 
 1;

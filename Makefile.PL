@@ -9,6 +9,7 @@ requires 'Exporter::Lite';
 requires 'Log::Minimal';
 requires 'JSON';
 requires 'Module::Load';
+requires 'Role::Tiny';
 
 tests 't/*.t';
 author_tests 'xt';

@@ -69,7 +69,8 @@ benchup - Run Benchmark Plan with Benchmark::Class
 
   # ex. task class
   package MyApp::Benchmark::Task::GetEntry {
-      use parent 'Benchmark::Class::Task';
+      use Role::Tiny::With;
+      with 'Benchmark::Class::Task';
 
       # if $self->worker enabled, perform with prefork
 
@@ -79,10 +80,16 @@ benchup - Run Benchmark Plan with Benchmark::Class
 
           # your code here..
       }
+
+      sub is_finish {
+          my $self = shift;
+          return !!$self->count > $self->get_count;
+      }
   }
 
 =head1 TODO
 
 # http_agent with AnyEvent::HTTP or FurlX::Coro or mechanized Furl
-# Role for task
 # test
+
+# keep-alive 的なところ
