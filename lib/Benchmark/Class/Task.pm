@@ -35,7 +35,7 @@ before perform => sub { shift->perform_count++ };
 sub load {
     my $self = shift;
 
-    while ( $self->is_finished && $self->worker_manager->signal_received ne 'TERM' ) {
+    while ( !$self->is_finished && $self->worker_manager->signal_received ne 'TERM' ) {
         $self->worker_manager->start(sub { $self->perform(@_) });
         # XXX MaxRequestsPerChild 的なことしといたほうがいいかな
     }
