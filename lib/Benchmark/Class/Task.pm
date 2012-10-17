@@ -29,11 +29,18 @@ sub _build_worker_manager {
 sub _build_memcached {
     my $self = shift;
     require Cache::Memcached::Fast;
-    return Cache::Memcached::Fast->new({
-        servers   => [ { address => 'localhost:11211' } ],
+    my $cache = Cache::Memcached::Fast->new({
+        servers   => [ { address => 'localhost:11211' } ], #XXX configable
         namespace => 'benchmark:',
         io_timeout      => 0.1,
     });
+
+    # check connection
+    my $success = 0;
+    defined $cache->set('__test', 1, 10) && $success++ for 1 .. 5;
+    die "Can't connect memcached" unless $success;
+
+    return $cache;
 }
 
 sub _build_max_perfom_per_child { 100 }
