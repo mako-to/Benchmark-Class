@@ -90,5 +90,3 @@ benchup - Run Benchmark Plan with Benchmark::Class
 =head1 TODO
 
 # test
-
-# keep-alive 的なところ
