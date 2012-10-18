@@ -7,7 +7,6 @@ requires 'Cache::Memcached::Fast';
 requires 'Carp';
 requires 'Class::Accessor::Lite::Lazy';
 requires 'Exporter::Lite';
-requires 'Log::Minimal';
 requires 'JSON';
 requires 'Module::Load';
 requires 'Role::Tiny';
