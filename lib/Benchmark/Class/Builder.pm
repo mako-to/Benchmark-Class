@@ -29,11 +29,26 @@ sub parse_options {
     my $self = shift;
 
     local @ARGV = @_;
+    # From 'prove': Allow cuddling the paths with -I, -M
+    @ARGV = map { /^(-[IM])(.+)/ ? ($1,$2) : $_ } @ARGV;
+
     GetOptions(
         'config=s'  => \my $config,
         'planner=s' => \my $planner,
         'task=s@'   => \my $tasks,
+        'I=s@'      => \my $includes,
+        'M=s@'      => \my $modules,
     );
+
+    if (@{ $includes || [] }) {
+        require lib;
+        lib->import(@$includes);
+    }
+
+    for (@{ $modules || [] }) {
+        my($module, @import) = split /[=,]/;
+        load $module;
+    }
 
     if ($config) {
         open my $config_fh, '<', $config or croak $!;
