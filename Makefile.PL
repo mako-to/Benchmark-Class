@@ -9,6 +9,7 @@ requires 'Class::Accessor::Lite::Lazy';
 requires 'Exporter::Lite';
 requires 'JSON';
 requires 'Module::Load';
+requires 'Parallel::Prefork';
 requires 'Role::Tiny';
 requires 'Scalar::Util';
 requires 'Smart::Args';
