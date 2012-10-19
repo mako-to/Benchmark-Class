@@ -4,8 +4,8 @@ use strict;
 use warnings;
 use Class::Accessor::Lite::Lazy (
     new     => 1,
-    ro_lazy => [qw/context/],
-    rw_lazy => [qw/tasks/],
+    rw_lazy => [qw/context/],
+    rw_lazy => [qw/setups tasks/],
 );
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use Carp;
@@ -35,6 +35,7 @@ sub parse_options {
     GetOptions(
         'config=s'  => \my $config,
         'planner=s' => \my $planner,
+        'setup=s@'  => \my $setups,
         'task=s@'   => \my $tasks,
         'I=s@'      => \my $includes,
         'M=s@'      => \my $modules,
@@ -51,11 +52,26 @@ sub parse_options {
     }
 
     if ($config) {
+
         open my $config_fh, '<', $config or croak $!;
         my $string = do { local $/; <$config_fh> };
         close $config_fh;
+        my $config_param = $json->decode($string);
 
-        $self->context->config( $json->decode($string) );
+        my $context = do {
+            my $class = $config_param->{context} && $config_param->{context}->{class}
+                ? $config_param->{context}->{class}
+                : 'Benchmark::Class::Context';
+            load $class;
+            $class->new(
+                $config_param->{context} && $config_param->{context}->{args}
+                    ? $config_param->{context}->{args}
+                    : ()
+            );
+        };
+        $self->context($context);
+
+        $self->context->config($config_param);
 
         my $planner_config = $self->context->config->{planner};
         if ($planner_config) {
@@ -63,6 +79,12 @@ sub parse_options {
             $self->context->planner(
                 $planner_config->{class}->new($planner_config->{args})
             );
+        }
+
+        my $setup_config = $self->context->config->{setups} || [];
+        for my $setup (@$setup_config) {
+            load $setup;
+            push @{ $self->setups }, $setup->new( $setup->{args} );
         }
 
         my $task_config = $self->context->config->{tasks} || [];
@@ -75,6 +97,15 @@ sub parse_options {
     if ($planner) {
         load $planner;
         $self->context->planner($planner->new);
+    }
+
+    for my $setup (@$setups) {
+        # XXX すでに config に setup があるときどうするのがいいか
+        # 1. config における setup を破棄
+        # 2. 新しい setup を追加
+
+        load $setup;
+        push @{ $self->setups }, $setup->new;
     }
 
     for my $task (@$tasks) {
@@ -92,6 +123,10 @@ sub run {
 
     if ( $self->context->planner ) {
         return $self->context->planner->launch($self->context);
+    }
+
+    for my $setup ( @{ $self->setups } ) {
+        $setup->load($self->context);
     }
 
     for my $task ( @{ $self->tasks } ) {
