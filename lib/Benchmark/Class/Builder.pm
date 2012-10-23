@@ -4,8 +4,7 @@ use strict;
 use warnings;
 use Class::Accessor::Lite::Lazy (
     new     => 1,
-    rw_lazy => [qw/context/],
-    rw_lazy => [qw/setups tasks/],
+    rw_lazy => [qw/context setups tasks/],
 );
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use Carp;
@@ -18,6 +17,11 @@ sub _build_context {
     my $self = shift;
     require Benchmark::Class::Context;
     return Benchmark::Class::Context->new;
+}
+
+sub _build_setups {
+    my $self = shift;
+    return [];
 }
 
 sub _build_tasks {
